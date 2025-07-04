@@ -1,7 +1,7 @@
 let modInfo = {
-	name: "The ??? Tree",
-	author: "nobody",
-	pointsName: "points",
+	name: "Sheep Incremental?",
+	author: "Abraham and Joshua Berne",
+	pointsName: "Sheep Fragments",
 	modFiles: ["layers.js", "tree.js"],
 
 	discordName: "",
@@ -18,8 +18,9 @@ let VERSION = {
 
 let changelog = `<h1>Changelog:</h1><br>
 	<h3>v0.0</h3><br>
-		- Added things.<br>
-		- Added stuff.`
+		- Added Sheep.<br/>
+                - Added 10 Sheep Upgrades.<br/>
+		- Added First Pillow.`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
 
@@ -41,7 +42,7 @@ function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(0)
 
-	let gain = new Decimal(1)
+	let gain = new Decimal(0)
 	return gain
 }
 
@@ -55,7 +56,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.points.gte(new Decimal("e280000000"))
+    return player["p"].points.gte(0)
 }
 
 
