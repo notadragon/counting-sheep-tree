@@ -12,12 +12,17 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0",
-	name: "Literally nothing",
+    num: "0.0.3",
+    name: "I am Poor",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
-	<h3>v0.0</h3><br>
+        <h3>v0.0.3 - I am Poor</h3><br/>
+                - Added Money <br/>
+        <h3>v0.0.2 - Pillowing Pillow Quest</h3><br/>
+                - Fixed bugs <br/>
+                - Pillow upgrades and milestones <br/>
+	<h3>v0.0.1 - First Pillow Quest</h3><br/>
 		- Added Sheep.<br/>
                 - Added 10 Sheep Upgrades.<br/>
 		- Added First Pillow.`
@@ -56,7 +61,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-    return player["p"].points.gte(0)
+    return player["p"].points.gt(100000)
 }
 
 

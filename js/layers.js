@@ -28,6 +28,7 @@ addLayer("s", {
     layerShown(){return true},
     tabFormat: [
         "main-display",
+        "resource-display",
         "blank",
         "buyables",
         "milestones",
@@ -47,24 +48,57 @@ addLayer("s", {
         if (hasMilestone('s', 0)) { output = output.add(10) }
         if (hasMilestone('s', 1)) { output = output.add(7) }
         if (hasUpgrade('s', 15)) { output = output.add(36) }
-        if (hasUpgrade('s',21)) { output = output.times(2) }
-        if (hasUpgrade('s',22)) { output = output.times(2)}
-        if (hasUpgrade('s',23)) { output = output.sub(10) }
+        if (hasUpgrade('s',21) && !hasUpgrade('s',22)) { output = output.times(2) }
+        if (hasUpgrade('s',22)) { output = output.times(4) }
+        if (hasUpgrade('s',23) && !hasMilestone('p',0)) { output = output.sub(10) }
         if (hasUpgrade('s',24)) { output = output.times(10) }
+        if (hasUpgrade('s',25)) { output = output.times(2) }
 
-        output = output.times(10)
+        if (hasUpgrade('p',11)) { output = output.times(5) }
+        if (hasUpgrade('p',12)) { output = output.times(10) }
+
+        //output = output.times(10)
         
         return output
     },
 
+    doReset(resettingLayer) {
+
+        let upgrades = player['s'].upgrades
+        let newUpgrades = []
+
+        for (const upg of upgrades) {
+            if (upg == 23 && hasMilestone('p',0)) {
+                newUpgrades.push(upg)
+            }
+        }
+
+        layerDataReset('s')
+
+        player['s'].upgrades = newUpgrades
+            
+    },
+
     passiveGeneration()
     {
+        output = new Decimal(0)
+        
         if (hasUpgrade('s',23)) {
-            return this.sheepPerCount()
+            output.add(this.sheepPerCount())
         }
-        else {
-            return new Decimal(0)
+        if (hasUpgrade('p',14)) {
+            output = output.times(2)
         }
+        if (hasMilestone('p',1)) {
+            output = output.add(10)
+        }
+
+        return output
+    },
+
+    autoUpgrade()
+    {
+        return hasMilestone('p',2)
     },
 
     buyables: {
@@ -117,27 +151,38 @@ addLayer("s", {
         },
         22: {
             title: "Sheep Quadruplicator",
-            description: "Double Sheep/Count",
+            description: "Disable Sheep Duplicator<br/>Quadruple Sheep/Count",
             cost: new Decimal(200000),
             unlocked() { return hasMilestone('s',1) }
         },
         23: {
             title: "Auto Counter But Is it Really Worth It?",
-            description: "+1 Count/Sec, -10 Sheep/Count",
+            description() {
+                output = "+1 Count/Sec"
+                if (!hasMilestone('p',0)) output = output + "<br/> -10 Sheep/Count"
+                return output
+            },
             cost: new Decimal(200000),
-            unlocked() { return hasMilestone('s',1) && hasUpgrade('s',22)}
+            unlocked() { return (hasMilestone('s',1) && hasUpgrade('s',22)) || hasUpgrade('s',23)}
         },
         24: {
             title: "Second to Last Upgrade Before the Next Layer",
             description: "*10 Sheep/Count",
-            cost: new Decimal(1000000),
-            unlocked() { return hasUpgrade('s',23)}
+            cost: new Decimal(500000),
+            unlocked() { return hasUpgrade('s',15) 
+                         && hasUpgrade('s',21)
+                         && hasUpgrade('s',22)
+                         && hasUpgrade('s',23)}
         },
         25: {
             title: "The Last Upgrade Before the Next Layer",
-            description: "Unlock Pillows",
-            cost: new Decimal(20000000),
-            unlocked() { return hasUpgrade('s',24)}
+            description: "Unlock Pillows<br/>Double Sheep/Count",
+            cost: new Decimal(2500000),
+            unlocked() { return hasUpgrade('s',15) 
+                         && hasUpgrade('s',21)
+                         && hasUpgrade('s',22)
+                         && hasUpgrade('s',23)
+                         && hasUpgrade('s',24)}
         },
     },
 
@@ -163,10 +208,11 @@ addLayer("p", {
     symbol: "P", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
+        unlocked: false,
         points: new Decimal(0),
     }},
     color: "#800080",
-    requires: new Decimal(10000000), // Can be a function that takes requirement increases into account
+    requires: new Decimal(5000000), // Can be a function that takes requirement increases into account
     resource: "pillows", // Name of prestige currency
     baseResource: "sheep", // Name of resource prestige is based on
     baseAmount() {return player["s"].points}, // Get the current amount of baseResource
@@ -183,8 +229,69 @@ addLayer("p", {
     hotkeys: [
         {key: "p", description: "P: reset for pillows", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return true},
     unlocked() {
         return hasUpgrade('s',25)
     },
+    layerShown() {
+        return player['p'].best.gt(0) || hasUpgrade('s',25)
+    },
+
+    passiveGeneration()
+    {
+        if (hasUpgrade('p',13)) {
+            return new Decimal(1).div(100)
+        }
+        else {
+            return new Decimal(0)
+        }
+    },
+
+    upgrades: {
+        11: {
+            title: "You Just Lost A Lot Of Sheep!<br/>Let's Give You A Boost!",
+            description: "*5 Sheep/Count",
+            cost: new Decimal(1),
+        },
+        12: {
+            title: "Suppertime!",
+            description: "*10 Sheep/Count",
+            cost: new Decimal(3),
+        },
+        13: {
+            title: "Pillow Automator?",
+            description: "1% Pillows/Sec",
+            cost: new Decimal(10),
+        },
+        14: {
+            title: "Upgrade Your Sheep Counter",
+            description: "+1 Count/Sec",
+            cost: new Decimal(25),
+        },
+        15: {
+            title: "Unlock Some Milestones",
+            description: "Unlock 3 Milestones",
+            cost: new Decimal(50),
+        },
+    },
+
+    milestones: {
+        0: {
+            unlocked() { return hasUpgrade('p', 15) },
+            requirementDescription: "Get 75 Pillows",
+            effectDescription: "Keep Sheep U23 On Pillow Reset<br/>Cancel Sheep U23 Debuff",
+            done() { return this.unlocked() && player[this.layer].points.gt(75) }
+        },
+        1: {
+            unlocked() { return hasUpgrade('p', 15) },
+            requirementDescription: "Get 140 Pillows",
+            effectDescription: "Upgrade Auto Counter Again !?!?<br/>+10 Count/Sec",
+            done() { return this.unlocked() && player[this.layer].points.gt(140) }
+        },
+        2: {
+            unlocked() { return hasUpgrade('p', 15) },
+            requirementDescription: "Get 230 Pillows",
+            effectDescription: "Autobuy Sheep Upgrades",
+            done() { return this.unlocked() && player[this.layer].points.gt(230) }
+        },
+    }
 })
